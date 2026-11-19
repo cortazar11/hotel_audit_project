@@ -2,6 +2,15 @@ from fastapi import FastAPI,HTTPException
 import sys
 from pathlib import Path
 from functools import lru_cache
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+USER_AGENT = os.getenv("SEC_USER_AGENT")
+
+if not USER_AGENT:
+    raise RuntimeError("SEC_USER_AGENT environment variable is not set")
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
