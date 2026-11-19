@@ -189,3 +189,24 @@ def calculate_cash_after_distributions(df):
     )
 
     return result
+
+
+
+
+def calculate_distributions_to_net_income(df):
+    """
+    Calculate shareholder distributions as a percentage of net income.
+    Distributions comprise treasury stock purchases and dividends.
+    """
+    result = df.copy()
+
+    result["distributions_pct_net_income"] = (
+        (
+            result["treasury_stock_purchases_bn"]
+            + result["dividends_bn"]
+        )
+        / result["net_income_bn"]
+        * 100
+    )
+
+    return result

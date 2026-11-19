@@ -188,32 +188,95 @@ def get_annual_instant_fact(data, concept, year):
 
     return matches[-1]["val"]
 
-def extract_annual_concept(us_gaap, concept_name, output_name):
+
+
+def extract_annual_concept(
+    us_gaap,
+    concept_name,
+    output_name,
+    start_year=2021,
+    end_year=2025
+):
     facts = us_gaap[concept_name]["units"]["USD"]
-    result = pd.DataFrame(facts)
 
-    # Keep full-year 10-K observations
-    result = result[
-        (result["form"] == "10-K") &
-        (result["fp"] == "FY") &
-        (result["end"].str.endswith("-12-31"))
-    ].copy()
+    # INSTANT FACTS: balance-sheet items
+    if not any("start" in item for item in facts):
 
-    result["year"] = pd.to_datetime(result["end"]).dt.year
+        result = pd.DataFrame(facts)
 
-    # Keep 2021–2025 and the latest filing for each year
-    result = result[result["year"].between(2021, 2025)]
-    result = (
-        result.sort_values("filed")
-        .drop_duplicates(subset="year", keep="last")
-        .sort_values("year")
-    )
+        result = result[
+            (result["form"] == "10-K") &
+            (result["fp"] == "FY") &
+            (result["end"].str.endswith("-12-31"))
+        ].copy()
+
+        result["year"] = pd.to_datetime(result["end"]).dt.year
+
+        result = result[
+            result["year"].between(start_year, end_year)
+        ]
+
+        result = (
+            result.sort_values("filed")
+            .drop_duplicates(subset="year", keep="last")
+            .sort_values("year")
+        )
+
+    # DURATION FACTS: income-statement items
+    else:
+
+        candidates = [
+            item for item in facts
+            if (
+                item.get("fy") is not None
+                and start_year <= item["fy"] <= end_year
+                and item.get("form") == "10-K"
+            )
+        ]
+
+        annual_facts = []
+
+        for fy in range(start_year, end_year + 1):
+
+            year_facts = [
+                item for item in candidates
+                if item["fy"] == fy
+            ]
+
+            annual_candidates = []
+
+            for item in year_facts:
+                if "start" not in item:
+                    continue
+
+                start = pd.to_datetime(item["start"])
+                end = pd.to_datetime(item["end"])
+                duration_days = (end - start).days
+
+                if 300 <= duration_days <= 400:
+                    annual_candidates.append(item)
+
+            if not annual_candidates:
+                continue
+
+            annual = max(
+                annual_candidates,
+                key=lambda item: item["end"]
+            )
+
+            annual_facts.append(annual)
+
+        result = pd.DataFrame(annual_facts)
+
+        result["year"] = result["fy"].astype("int32")
 
     result[output_name] = result["val"] / 1e9
 
     return result.reindex(
-         columns=["year", output_name, "filed", "start", "end"]
+        columns=["year", output_name, "filed", "start", "end"]
     )
+
+
 
 def extract_annual_fact(us_gaap, concept, years=range(2021, 2026)):
     facts = us_gaap[concept]["units"]["USD"]

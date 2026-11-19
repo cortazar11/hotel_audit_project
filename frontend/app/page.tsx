@@ -3,16 +3,50 @@ import DebtSection from "@/components/DebtSection";
 import DebtRatiosSection from "@/components/DebtRatiosSection";
 import ShareholderDistributionSection from "@/components/ShareholderDistributionSection";
 
+export const instant = false;
+
 type MaterialityBenchmark = {
   year: number;
   benchmark: string;
   value: number;
 };
 
+type MaterialityRecord = {
+  year: number;
+  total_assets: number;
+  profit_before_tax: number;
+  assets_1pct: number;
+  pbt_5pct: number | null;
+  pbt_3yr_avg_5pct: number | null;
+};
+
+type MaterialityApiResponse = {
+  company: string;
+  cik: string;
+  data: MaterialityRecord[];
+};
+
 type DebtBenchmark = {
   year: number;
   value: number;
 };
+
+type DebtApiResponse = {
+  company: string;
+  cik: string;
+  data: DebtBenchmark[];
+};
+
+type DebtRatiosApiResponse = {
+  company: string;
+  cik: string;
+  data: {
+    year: number;
+    debt_leases_to_revenue_pct: number;
+    debt_leases_to_cfo: number;
+  }[];
+};
+
 type DebtPerformanceBenchmark = {
   year: number;
   debtToRevenuePct: number;
@@ -24,83 +58,107 @@ type ShareholderDistributionBenchmark = {
   percentage: number;
 };
 
-const materialityBenchmarks: MaterialityBenchmark[] = [
-  {
-    year: 2023,
-    benchmark: "1% of Total Assets",
-    value: 248.15,
-  },
-  {
-    year: 2023,
-    benchmark: "5% of Profit Before Tax",
-    value: 155.70,
-  },
-  {
-    year: 2023,
-    benchmark: "5% of 3-Year Average PBT",
-    value: 127.87,
-  },
-  {
-    year: 2024,
-    benchmark: "1% of Total Assets",
-    value: 256.74,
-  },
-  {
-    year: 2024,
-    benchmark: "5% of Profit Before Tax",
-    value: 168.90,
-  },
-  {
-    year: 2024,
-    benchmark: "5% of 3-Year Average PBT",
-    value: 160.72,
-  },
-  {
-    year: 2025,
-    benchmark: "1% of Total Assets",
-    value: 275.40,
-  },
-  {
-    year: 2025,
-    benchmark: "5% of Profit Before Tax",
-    value: 169.70,
-  },
-  {
-    year: 2025,
-    benchmark: "5% of 3-Year Average PBT",
-    value: 165.38,
-  },
-];
+type ShareholderDistributionApiResponse = {
+  company: string;
+  cik: string;
+  data: {
+    year: number;
+    distributions_pct_net_income: number;
+  }[];
+};
 
-const debtBenchmarks: DebtBenchmark[] = [
-  { year: 2021, value: 9.333 },
-  { year: 2022, value: 9.380 },
-  { year: 2023, value: 11.320 },
-  { year: 2024, value: 13.138 },
-  { year: 2025, value: 14.995 },
-];
 
-const debtPerformanceBenchmarks: DebtPerformanceBenchmark[] = [
-  { year: 2015, debtToRevenuePct: 26.28, debtToCfo: 2.66 },
-  { year: 2016, debtToRevenuePct: 48.01, debtToCfo: 5.18 },
-  { year: 2017, debtToRevenuePct: 34.24, debtToCfo: 3.22 },
-  { year: 2018, debtToRevenuePct: 41.02, debtToCfo: 3.61 },
-  { year: 2019, debtToRevenuePct: 47.51, debtToCfo: 5.91 },
-  { year: 2022, debtToRevenuePct: 45.15, debtToCfo: 3.97 },
-  { year: 2023, debtToRevenuePct: 47.74, debtToCfo: 3.57 },
-  { year: 2024, debtToRevenuePct: 52.34, debtToCfo: 4.78 },
-  { year: 2025, debtToRevenuePct: 57.26, debtToCfo: 4.67 },
-];
 
-const shareholderDistributionBenchmarks: ShareholderDistributionBenchmark[] = [
-  { year: 2022, percentage: 123.9 },
-  { year: 2023, percentage: 147.3 },
-  { year: 2024, percentage: 187.1 },
-  { year: 2025, percentage: 154.2 },
-];
 
-export default function Home() {
+export default async function Home() {
   
+    const response = await fetch(
+        "http://127.0.0.1:8000/materiality",
+        { cache: "no-store" } 
+        );
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch materiality data");
+    }
+
+  const materialityApi: MaterialityApiResponse = await response.json();
+
+    const materialityBenchmarks: MaterialityBenchmark[] =
+      materialityApi.data.flatMap((record) => [
+        {
+          year: record.year,
+          benchmark: "1% of Total Assets",
+          value: record.assets_1pct / 1_000_000,
+        },
+        {
+          year: record.year,
+          benchmark: "5% of Profit Before Tax",
+          value: record.pbt_5pct === null
+            ? null
+            : record.pbt_5pct / 1_000_000,
+        },
+        {
+          year: record.year,
+          benchmark: "5% of 3-Year Average PBT",
+          value: record.pbt_3yr_avg_5pct === null
+            ? null
+            : record.pbt_3yr_avg_5pct / 1_000_000,
+        },
+      ]).filter(
+        (item) => item.value !== null
+      ) as MaterialityBenchmark[];
+
+    const debtResponse = await fetch(
+      "http://127.0.0.1:8000/debt-obligations",
+      { cache: "no-store" }
+    );
+
+      if (!debtResponse.ok) {
+        throw new Error("Failed to fetch debt obligations data");
+      }
+
+      const debtApi: DebtApiResponse = await debtResponse.json();
+
+      const debtBenchmarks: DebtBenchmark[] = debtApi.data;
+
+    const debtRatiosResponse = await fetch(
+        "http://127.0.0.1:8000/debt-ratios",
+        { cache: "no-store" }
+      );
+
+      if (!debtRatiosResponse.ok) {
+        throw new Error("Failed to fetch debt ratios");
+      }
+
+    const debtRatiosApi: DebtRatiosApiResponse =
+  await debtRatiosResponse.json();
+
+    const debtPerformanceBenchmarks: DebtPerformanceBenchmark[] =
+      debtRatiosApi.data
+        .filter((record) => ![2020, 2021].includes(record.year))
+        .map((record) => ({
+          year: record.year,
+          debtToRevenuePct: record.debt_leases_to_revenue_pct,
+          debtToCfo: record.debt_leases_to_cfo,
+        }));
+      
+    const shareholderDistributionResponse = await fetch(
+      "http://127.0.0.1:8000/shareholder-distributions",
+      { cache: "no-store" }
+    );
+
+      if (!shareholderDistributionResponse.ok) {
+        throw new Error("Failed to fetch shareholder distributions");
+      }
+
+      const shareholderDistributionApi: ShareholderDistributionApiResponse =
+        await shareholderDistributionResponse.json();
+
+      const shareholderDistributionBenchmarks: ShareholderDistributionBenchmark[] =
+        shareholderDistributionApi.data.map((record) => ({
+          year: record.year,
+          percentage: record.distributions_pct_net_income,
+        }));
 
   return (
     <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
