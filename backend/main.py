@@ -32,7 +32,7 @@ from hotel_audit.financial_metrics import (
 )
 
 CIK = "1048286"
-USER_AGENT = "Miguel Martinez miguel.martinez11@gmail.com"
+
 
 # Helper functions
 @lru_cache(maxsize=1)
