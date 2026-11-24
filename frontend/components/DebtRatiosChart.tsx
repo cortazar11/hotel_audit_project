@@ -30,15 +30,25 @@ export default function DebtRatiosChart({
         </h3>
 
         <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={data}>
+          <LineChart
+            data={data}
+            margin={{ top: 5, right: 10, bottom: 5, left: 0 }}
+          >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="year" />
-            <YAxis tickFormatter={(value) => `${value}%`} />
+            <YAxis
+                width={38}
+                tick={{ fontSize: 12 }}
+                tickMargin={4}
+                tickFormatter={(value) => `${value}%`}
+            />
             <Tooltip
-              formatter={(value) => [
-                `${Number(value).toFixed(2)}%`,
-                "Debt / Revenue",
-              ]}
+                offset={0}
+                wrapperStyle={{ transform: "translateX(-50%)" }}
+                formatter={(value) => [
+                  `${Number(value).toFixed(2)}%`,
+                  "Debt / Revenue",
+                ]}
             />
             <Line
               type="monotone"
@@ -57,15 +67,25 @@ export default function DebtRatiosChart({
         </h3>
 
         <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={data}>
+          <LineChart
+              data={data}
+              margin={{ top: 5, right: 10, bottom: 5, left: 0 }}
+            >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="year" />
-            <YAxis tickFormatter={(value) => `${value}x`} />
+            <YAxis
+                width={38}
+                tick={{ fontSize: 12 }}
+                tickMargin={4}
+                tickFormatter={(value) => `${value}%`}
+            />
             <Tooltip
-              formatter={(value) => [
-                `${Number(value).toFixed(2)}x`,
-                "Debt / Operating cash flow",
-              ]}
+                offset={0}
+                wrapperStyle={{ transform: "translateX(-50%)" }}
+                formatter={(value) => [
+                  `${Number(value).toFixed(2)}x`,
+                  "Debt / Operating cash flow",
+                ]}
             />
             <Line
               type="monotone"
