@@ -80,13 +80,12 @@ export default function DebtRatiosChart({
                 tickFormatter={(value) => `${value}%`}
             />
             <Tooltip
-                offset={10}
-                allowEscapeViewBox={{ x: false, y: false }}
-                wrapperStyle={{ transform: "translateX(-50%)" }}
-                formatter={(value) => [
-                  `${Number(value).toFixed(2)}x`,
-                  "Debt / Operating cash flow",
-                ]}
+              offset={10}
+              allowEscapeViewBox={{ x: false, y: false }}
+              formatter={(value) => [
+                `${Number(value).toFixed(2)}x`,
+                "Debt / Operating cash flow",
+              ]}
             />
             <Line
               type="monotone"
