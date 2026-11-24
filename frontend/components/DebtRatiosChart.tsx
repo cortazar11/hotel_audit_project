@@ -43,8 +43,8 @@ export default function DebtRatiosChart({
                 tickFormatter={(value) => `${value}%`}
             />
             <Tooltip
-                offset={0}
-                wrapperStyle={{ transform: "translateX(-50%)" }}
+                offset={10}
+                allowEscapeViewBox={{ x: false, y: false }}
                 formatter={(value) => [
                   `${Number(value).toFixed(2)}%`,
                   "Debt / Revenue",
@@ -80,7 +80,8 @@ export default function DebtRatiosChart({
                 tickFormatter={(value) => `${value}%`}
             />
             <Tooltip
-                offset={0}
+                offset={10}
+                allowEscapeViewBox={{ x: false, y: false }}
                 wrapperStyle={{ transform: "translateX(-50%)" }}
                 formatter={(value) => [
                   `${Number(value).toFixed(2)}x`,
