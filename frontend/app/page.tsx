@@ -71,94 +71,103 @@ type ShareholderDistributionApiResponse = {
 
 
 export default async function Home() {
-  
-    const response = await fetch(
-        "http://127.0.0.1:8000/materiality",
-        { cache: "no-store" } 
-        );
 
-    if (!response.ok) {
-      throw new Error("Failed to fetch materiality data");
+    const apiBaseUrl = process.env.BACKEND_API_URL;
+
+    if (!apiBaseUrl) {
+      throw new Error("BACKEND_API_URL is not configured");
     }
+  
 
-  const materialityApi: MaterialityApiResponse = await response.json();
+      // Fetch all four endpoints concurrently
+      const [
+        response,
+        debtResponse,
+        debtRatiosResponse,
+        shareholderDistributionResponse,
+      ] = await Promise.all([
+        fetch(`${apiBaseUrl}/materiality`, { cache: "no-store" }),
+        fetch(`${apiBaseUrl}/debt-obligations`, { cache: "no-store" }),
+        fetch(`${apiBaseUrl}/debt-ratios`, { cache: "no-store" }),
+        fetch(`${apiBaseUrl}/shareholder-distributions`, { cache: "no-store" }),
+      ]);
 
-    const materialityBenchmarks: MaterialityBenchmark[] =
-      materialityApi.data.flatMap((record) => [
-        {
-          year: record.year,
-          benchmark: "1% of Total Assets",
-          value: record.assets_1pct / 1_000_000,
-        },
-        {
-          year: record.year,
-          benchmark: "5% of Profit Before Tax",
-          value: record.pbt_5pct === null
-            ? null
-            : record.pbt_5pct / 1_000_000,
-        },
-        {
-          year: record.year,
-          benchmark: "5% of 3-Year Average PBT",
-          value: record.pbt_3yr_avg_5pct === null
-            ? null
-            : record.pbt_3yr_avg_5pct / 1_000_000,
-        },
-      ]).filter(
-        (item) => item.value !== null
-      ) as MaterialityBenchmark[];
-
-    const debtResponse = await fetch(
-      "http://127.0.0.1:8000/debt-obligations",
-      { cache: "no-store" }
-    );
+      // Check all responses
+      if (!response.ok) {
+        throw new Error("Failed to fetch materiality data");
+      }
 
       if (!debtResponse.ok) {
         throw new Error("Failed to fetch debt obligations data");
       }
 
-      const debtApi: DebtApiResponse = await debtResponse.json();
-
-      const debtBenchmarks: DebtBenchmark[] = debtApi.data;
-
-    const debtRatiosResponse = await fetch(
-        "http://127.0.0.1:8000/debt-ratios",
-        { cache: "no-store" }
-      );
-
       if (!debtRatiosResponse.ok) {
         throw new Error("Failed to fetch debt ratios");
       }
-
-    const debtRatiosApi: DebtRatiosApiResponse =
-  await debtRatiosResponse.json();
-
-    const debtPerformanceBenchmarks: DebtPerformanceBenchmark[] =
-      debtRatiosApi.data
-        .filter((record) => ![2020, 2021].includes(record.year))
-        .map((record) => ({
-          year: record.year,
-          debtToRevenuePct: record.debt_leases_to_revenue_pct,
-          debtToCfo: record.debt_leases_to_cfo,
-        }));
-      
-    const shareholderDistributionResponse = await fetch(
-      "http://127.0.0.1:8000/shareholder-distributions",
-      { cache: "no-store" }
-    );
 
       if (!shareholderDistributionResponse.ok) {
         throw new Error("Failed to fetch shareholder distributions");
       }
 
-      const shareholderDistributionApi: ShareholderDistributionApiResponse =
-        await shareholderDistributionResponse.json();
+      // Parse all four responses
+      const [
+        materialityApi,
+        debtApi,
+        debtRatiosApi,
+        shareholderDistributionApi,
+      ] = await Promise.all([
+        response.json() as Promise<MaterialityApiResponse>,
+        debtResponse.json() as Promise<DebtApiResponse>,
+        debtRatiosResponse.json() as Promise<DebtRatiosApiResponse>,
+        shareholderDistributionResponse.json() as Promise<ShareholderDistributionApiResponse>,
+      ]);
 
+      // Transform materiality data
+      const materialityBenchmarks: MaterialityBenchmark[] =
+        materialityApi.data.flatMap((record) => [
+          {
+            year: record.year,
+            benchmark: "1% of Total Assets",
+            value: record.assets_1pct / 1_000_000,
+          },
+          {
+            year: record.year,
+            benchmark: "5% of Profit Before Tax",
+            value: record.pbt_5pct === null
+              ? null
+              : record.pbt_5pct / 1_000_000,
+          },
+          {
+            year: record.year,
+            benchmark: "5% of 3-Year Average PBT",
+            value: record.pbt_3yr_avg_5pct === null
+              ? null
+              : record.pbt_3yr_avg_5pct / 1_000_000,
+          },
+        ]).filter(
+          (item) => item.value !== null
+        ) as MaterialityBenchmark[];
+
+      // Transform debt data
+      const debtBenchmarks: DebtBenchmark[] = debtApi.data;
+
+      // Transform debt ratios
+      const debtPerformanceBenchmarks: DebtPerformanceBenchmark[] =
+        debtRatiosApi.data
+          .filter((record) => ![2020, 2021].includes(record.year))
+          .map((record) => ({
+            year: record.year,
+            debtToRevenuePct: record.debt_leases_to_revenue_pct,
+            debtToCfo: record.debt_leases_to_cfo,
+          }));
+
+      // Transform shareholder distributions
       const shareholderDistributionBenchmarks: ShareholderDistributionBenchmark[] =
         shareholderDistributionApi.data.map((record) => ({
           year: record.year,
           percentage: record.distributions_pct_net_income,
         }));
+
 
   return (
     <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">

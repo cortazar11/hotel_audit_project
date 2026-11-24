@@ -7,9 +7,9 @@ type MaterialityCardProps = {
 export default function MaterialityCard({title, benchmark, value}: MaterialityCardProps) {
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-      <h2 className="text-sm font-medium text-gray-500">
+      <h3 className="text-sm font-medium text-gray-500">
         {title}
-    </h2>
+    </h3>
 
     <p className="mt-2 text-sm text-gray-700">
         {benchmark}

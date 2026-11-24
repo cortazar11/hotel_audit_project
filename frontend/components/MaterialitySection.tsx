@@ -17,7 +17,7 @@ type MaterialitySectionProps = {
 export default function MaterialitySection({ benchmarks }: MaterialitySectionProps) {
     const [selectedYear, setSelectedYear] = useState<number>(2025);
 
-    // Filtering inside Home()
+    // Filter benchmarks according to the selected year
     const filteredBenchmarks = benchmarks.filter(
         (item) => item.year === selectedYear
     );
