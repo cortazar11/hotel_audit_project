@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -22,11 +23,21 @@ export default function ShareholderDistributionChart({
 }: ShareholderDistributionChartProps) {
   return (
     <ResponsiveContainer width="100%" height={350}>
-      <BarChart data={data}>
+      <BarChart
+        data={data}
+        margin={{ top: 5, right: 10, bottom: 5, left: 0 }}
+      >
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="year" />
-        <YAxis tickFormatter={(value) => `${value}%`} />
+        <YAxis
+          width={38}
+          tick={{ fontSize: 12 }}
+          tickMargin={4}
+          tickFormatter={(value) => `${value}%`}
+        />
         <Tooltip
+          offset={10}
+          allowEscapeViewBox={{ x: false, y: false }}
           formatter={(value) => [
             `${Number(value).toFixed(1)}%`,
             "Distributions / Net income",

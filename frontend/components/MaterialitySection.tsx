@@ -25,8 +25,10 @@ export default function MaterialitySection({ benchmarks }: MaterialitySectionPro
     return (
         <section>
             <h2>Materiality Benchmarks</h2>
-            <YearSelector selectedYear={selectedYear} onYearChange={setSelectedYear} />
-            <div className="flex flex-wrap gap-6">
+            <div className="flex justify-center">
+                <YearSelector selectedYear={selectedYear} onYearChange={setSelectedYear} />
+            </div>
+            <div className="flex flex-wrap justify-center gap-6">
                 {filteredBenchmarks.length > 0 ? (
                     filteredBenchmarks.map((item) => (
                     <MaterialityCard

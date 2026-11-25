@@ -18,7 +18,7 @@ export default function ShareholderDistributionSection({
         Shareholder Distributions Relative to Net Income
       </h2>
 
-      <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+      <div className="rounded-lg border border-gray-200 bg-white p-3 sm:p-5 shadow-sm">
         <h3 className="mb-2 text-sm font-medium text-gray-600">
           Shareholder distributions / Net income (%)
         </h3>

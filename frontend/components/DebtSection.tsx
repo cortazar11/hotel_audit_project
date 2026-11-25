@@ -22,15 +22,15 @@ export default function DebtSection({
             Non-current debt and lease obligations (USD billions)
         </h3>
 
-        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+        <div className="rounded-lg border border-gray-200 bg-white p-3 sm:p-5 shadow-sm">
             <DebtChart data={benchmarks} />
         </div>
 
-      <div className="flex flex-wrap gap-6">
+      <div className="flex flex-wrap justify-center gap-6">
         {benchmarks.map((item) => (
             <div
             key={item.year}
-            className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm"
+            className="rounded-lg border border-gray-200 bg-white p-5 text-center shadow-sm"
             >
             <h3 className="text-sm font-medium text-gray-500">
                 {item.year}
